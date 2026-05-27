@@ -1,0 +1,77 @@
+import { Component, computed, effect, inject, PLATFORM_ID, signal } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { catchError, map, of } from 'rxjs';
+import { MarketplaceAuthService } from '../../services/marketplace-auth.service';
+
+@Component({
+  selector: 'app-store-layout',
+  standalone: true,
+  templateUrl: './store-layout.component.html',
+  styleUrls: ['./store-layout.component.css'],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive]
+})
+export class StoreLayoutComponent {
+  private readonly marketplaceAuthService = inject(MarketplaceAuthService);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
+  readonly currentTheme = signal<'dark' | 'light'>(this.getSavedTheme());
+  readonly marketplaceUser = computed(() => this.marketplaceAuthService.getCurrentUser());
+
+  // Refreshes marketplace session declaratively when a persisted token exists.
+  private readonly sessionResource = rxResource<boolean, true | undefined>({
+    params: () => (this.marketplaceAuthService.isAuthenticated() ? true : undefined),
+    stream: ({ params }) => {
+      if (!params) {
+        return of(true);
+      }
+
+      return this.marketplaceAuthService.me().pipe(
+        map(() => true),
+        catchError(() => {
+          this.marketplaceAuthService.logout();
+          return of(false);
+        }),
+      );
+    },
+    defaultValue: true,
+  });
+
+  constructor() {
+    effect(() => {
+      this.applyTheme(this.currentTheme());
+    });
+
+    effect(() => {
+      this.sessionResource.value();
+    });
+  }
+
+  toggleTheme(): void {
+    const nextTheme = this.currentTheme() === 'dark' ? 'light' : 'dark';
+    this.currentTheme.set(nextTheme);
+    if (this.isBrowser) {
+      localStorage.setItem('theme', nextTheme);
+    }
+  }
+
+  private applyTheme(theme: 'dark' | 'light'): void {
+    if (!this.isBrowser) {
+      return;
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+  }
+
+  logoutMarketplace() {
+    this.marketplaceAuthService.logout();
+  }
+
+  private getSavedTheme(): 'dark' | 'light' {
+    if (!this.isBrowser) {
+      return 'dark';
+    }
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme === 'light' ? 'light' : 'dark';
+  }
+}

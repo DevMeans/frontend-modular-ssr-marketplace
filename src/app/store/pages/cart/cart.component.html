@@ -1,0 +1,110 @@
+<section class="mk-cart-page">
+  <header class="cart-head">
+    <div>
+      <a class="back-link" routerLink="/marketplace">← Seguir comprando</a>
+      <h1>Carrito mayorista</h1>
+      <p>Revisa tus variantes y cantidades solicitadas antes del checkout.</p>
+    </div>
+    <button type="button" class="clear-btn" (click)="clearAll()" [disabled]="cartService.items().length === 0">
+      Vaciar carrito
+    </button>
+  </header>
+
+  @if (cartService.items().length === 0) {
+    <div class="empty-state">
+      Tu carrito esta vacio. Agrega productos desde el marketplace.
+    </div>
+  } @else {
+    <div class="cart-layout">
+      <div class="cart-groups">
+        @for (group of groupedProducts(); track group.productId) {
+          <article class="product-group">
+            <header>
+              <h2>{{ group.productName }}</h2>
+            </header>
+
+            <div class="items-list">
+              @for (item of group.items; track item.cartKey) {
+                <div class="item-row">
+                  <div class="variant-meta">
+                    <strong>{{ item.colorName }} / {{ item.sizeName }}</strong>
+                    <p>SKU: {{ item.sku }}</p>
+                    <p>Precio: S/ {{ item.unitPrice | number: '1.2-2' }}</p>
+                    <p class="pending" [class.has-pending]="hasPendingConfirmation(item)">
+                      {{ getAvailabilityMessage(item) }}
+                    </p>
+                  </div>
+
+                  <div class="item-actions">
+                    <input
+                      type="number"
+                      min="0"
+                      [value]="item.quantity"
+                      (input)="updateQty(item.cartKey, +$any($event.target).value)"
+                    />
+                    <p class="line-total">
+                      S/ {{ item.quantity * item.unitPrice | number: '1.2-2' }}
+                    </p>
+                    <button type="button" (click)="removeVariant(item.cartKey)">Quitar</button>
+                  </div>
+                </div>
+              }
+            </div>
+          </article>
+        }
+      </div>
+
+      <aside class="summary-panel">
+        <h3>Resumen</h3>
+        @if (loadingPaymentMethods) {
+          <p class="small-muted">Cargando metodos de pago...</p>
+        }
+        @if (paymentMethodsEnabled) {
+          <div class="payment-method-block">
+            <p class="payment-title">Metodo de pago</p>
+            @if (paymentMethods.length === 0) {
+              <p class="payment-empty">No hay metodos de pago disponibles por ahora.</p>
+            } @else {
+              <div class="payment-list">
+                @for (method of paymentMethods; track method.id) {
+                  <button
+                    type="button"
+                    class="payment-pill"
+                    [class.active]="isPaymentMethodSelected(method.id)"
+                    (click)="selectPaymentMethod(method.id)"
+                  >
+                    {{ method.name }}
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        }
+        <div class="summary-line">
+          <span>Unidades</span>
+          <strong>{{ cartService.totalUnits() }}</strong>
+        </div>
+        <div class="summary-line">
+          <span>Subtotal</span>
+          <strong>S/ {{ subtotal() | number: '1.2-2' }}</strong>
+        </div>
+        @if (includeIgv()) {
+          <div class="summary-line">
+            <span>{{ igvLabel }}</span>
+            <strong>S/ {{ tax() | number: '1.2-2' }}</strong>
+          </div>
+        }
+        <div class="summary-line total">
+          <span>Total</span>
+          <strong>S/ {{ total() | number: '1.2-2' }}</strong>
+        </div>
+        <p class="pending-banner" [class.show]="cartService.pendingUnits() > 0">
+          Parte del pedido quedara sujeta a confirmacion de stock.
+        </p>
+        <button type="button" class="checkout-btn" (click)="goCheckout()">
+          Continuar a checkout
+        </button>
+      </aside>
+    </div>
+  }
+</section>

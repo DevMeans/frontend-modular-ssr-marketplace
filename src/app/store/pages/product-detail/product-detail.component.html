@@ -1,0 +1,228 @@
+<section class="mk-detail-page">
+  @if (loading()) {
+    <div class="mk-state">Cargando producto...</div>
+  } @else if (errorMessage()) {
+    <div class="mk-state error">{{ errorMessage() }}</div>
+  } @else if (product(); as current) {
+    <header class="mk-detail-head">
+      <div>
+        <a class="back-link" routerLink="/marketplace">Volver al catalogo</a>
+        <h1>{{ current.name }}</h1>
+        <p class="meta-line">
+          {{ current.category?.name || 'Sin categoria' }} -
+          @if (current.minPrice !== current.maxPrice) {
+            S/ {{ current.minPrice | number: '1.2-2' }} - S/
+            {{ current.maxPrice | number: '1.2-2' }}
+          } @else {
+            S/ {{ current.minPrice | number: '1.2-2' }}
+          }
+        </p>
+        <p class="availability" [class.warning]="isProductAvailabilityWarning(current)">
+          {{ getProductAvailabilityLabel(current) }}
+        </p>
+      </div>
+      <a class="cart-chip" routerLink="/marketplace/cart">Pedido ({{ cartUnits }})</a>
+    </header>
+
+    <div class="mk-detail-layout">
+      <aside class="gallery-panel">
+        <div class="gallery-stage">
+          @if (current.images.length > 0) {
+            <div class="thumb-rail">
+              @for (image of current.images; track image.id) {
+                <button
+                  type="button"
+                  class="thumb-btn"
+                  [class.active]="selectedImageUrl() === image.url"
+                  (click)="selectImage(image.url)"
+                >
+                  <img [src]="image.url" [alt]="current.name" />
+                </button>
+              }
+            </div>
+          }
+
+          <div class="main-image">
+            @if (selectedImageUrl()) {
+              <img [src]="selectedImageUrl()" [alt]="current.name" />
+            }
+          </div>
+        </div>
+
+        @if (current.description) {
+          <section class="product-description-card">
+            <h3 class="font-bold text-lg">Descripcion del producto</h3>
+            <div class="product-description-body" [innerHTML]="current.description"></div>
+          </section>
+        }
+      </aside>
+
+      <section class="offer-panel">
+        <div class="variants-head">
+          <h2>Variantes</h2>
+          <button type="button" class="open-drawer-link" (click)="openVariantDrawer()">
+            Elegir
+          </button>
+        </div>
+
+        <div class="option-group">
+          <p>Color:</p>
+          <div class="option-row">
+            @for (option of colorOptions(); track option.name) {
+              <button
+                type="button"
+                class="option-chip"
+                [class.active]="selectedColorName() === option.name"
+                (click)="selectColor(option.name)"
+              >
+                <i [style.background]="option.hex || '#94a3b8'"></i>
+                {{ option.name }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="option-group">
+          <p>Talla:</p>
+          <div class="option-row">
+            @for (sizeName of sizeOptions(); track sizeName) {
+              <button
+                type="button"
+                class="size-chip"
+                [class.active]="selectedSizeName() === sizeName"
+                (click)="selectSize(sizeName)"
+              >
+                {{ sizeName }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <p class="selection-hint">
+          Al seleccionar color o talla se abrira el selector de cantidades.
+        </p>
+
+        <footer class="summary-footer">
+          <div>
+            <p>
+              Unidades seleccionadas: <strong>{{ totalSelectedUnits() }}</strong>
+            </p>
+            <p>
+              Subtotal estimado: <strong>S/ {{ estimatedSubtotal() | number: '1.2-2' }}</strong>
+            </p>
+            @if (footerMessage()) {
+              <p class="summary-error">{{ footerMessage() }}</p>
+            }
+          </div>
+          <div class="summary-actions">
+            <button type="button" class="btn-outline" (click)="openVariantDrawer()">
+              Seleccionar
+            </button>
+            <button type="button" class="btn-primary" (click)="addSelectionToCart()">
+              Agregar al pedido
+            </button>
+          </div>
+        </footer>
+      </section>
+    </div>
+
+    @if (drawerOpen()) {
+      <button type="button" class="drawer-backdrop" (click)="closeVariantDrawer()"></button>
+    }
+
+    <aside class="variant-drawer" [class.open]="drawerOpen()">
+      <header class="drawer-head">
+        <div>
+          <h3>Elige variaciones y cantidad</h3>
+          <p>
+            {{ selectedColorName() || 'Todos los colores' }} -
+            {{ selectedSizeName() || 'Todas las tallas' }}
+          </p>
+        </div>
+        <button type="button" class="drawer-close" (click)="closeVariantDrawer()">x</button>
+      </header>
+
+      <div class="drawer-price-tiers">
+        <div>
+          <small>2 - 19 und.</small>
+          <strong>S/ {{ getTierPrice('starter') | number: '1.2-2' }}</strong>
+        </div>
+        <div>
+          <small>20 - 99 und.</small>
+          <strong>S/ {{ getTierPrice('business') | number: '1.2-2' }}</strong>
+        </div>
+        <div>
+          <small>100+ und.</small>
+          <strong>S/ {{ getTierPrice('bulk') | number: '1.2-2' }}</strong>
+        </div>
+      </div>
+
+      <div class="drawer-selection">
+        <div class="drawer-selection-head">
+          <strong>Color:</strong>
+        </div>
+        <div class="drawer-color-row">
+          @for (option of colorOptions(); track option.name) {
+            <button
+              type="button"
+              class="drawer-color-btn"
+              [class.active]="selectedColorName() === option.name"
+              (click)="selectColor(option.name, false)"
+            >
+              @if (getColorPreviewImage(option.name); as colorImage) {
+                <img [src]="colorImage" [alt]="option.name" />
+              } @else {
+                <i [style.background]="option.hex || '#94a3b8'"></i>
+                <span>{{ option.name }}</span>
+              }
+            </button>
+          }
+        </div>
+
+        <div class="drawer-selection-head drawer-size-head">
+          <strong>Talla</strong>
+          <span>Guia de tallas</span>
+        </div>
+      </div>
+
+      <div class="drawer-list">
+        @for (variant of drawerVariants(); track variant.id) {
+          <article class="drawer-item" [class.active]="isDrawerVariantSelected(variant)">
+            <button
+              type="button"
+              class="drawer-size-chip"
+              [class.active]="isDrawerVariantSelected(variant)"
+              (click)="selectSize(getSizeName(variant), false)"
+            >
+              {{ getSizeName(variant) }}
+            </button>
+            <div class="drawer-item-price">S/ {{ variant.price | number: '1.2-2' }}</div>
+            <div class="qty-stepper">
+              <button type="button" (click)="decrementVariant(variant.id)">-</button>
+              <input
+                type="number"
+                min="0"
+                [value]="getVariantQty(variant.id)"
+                (input)="setVariantQty(variant.id, +$any($event.target).value)"
+              />
+              <button type="button" (click)="incrementVariant(variant.id)">+</button>
+            </div>
+            <p class="drawer-item-status">{{ getVariantAvailabilityLabel(variant) }}</p>
+          </article>
+        } @empty {
+          <p class="drawer-empty">No hay variantes para la combinacion seleccionada.</p>
+        }
+      </div>
+
+      <footer class="drawer-foot">
+        <div>
+          <p>Total antes de impuestos</p>
+          <strong>S/ {{ drawerSubtotal() | number: '1.2-2' }}</strong>
+        </div>
+        <button type="button" class="btn-primary" (click)="addSelectionToCart()">
+          Agregar al pedido
+        </button>
+      </footer>
+    </aside>
+  }
+</section>

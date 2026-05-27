@@ -1,0 +1,29 @@
+<div class="fixed top-4 right-4 z-50 max-w-sm">
+  @if (alertService.currentAlert(); as alert) {
+    <div class="animate-slide-in">
+      <div [class]="'alert shadow-lg ' + getAlertClasses(alert.type)">
+        <div>
+          <span class="text-lg" [class]="getIconColor(alert.type)">{{ getIcon(alert.type) }}</span>
+          <span class="font-semibold ml-2">@switch (alert.type) {
+            @case ('success') {
+              Éxito
+            }
+            @case ('error') {
+              Error
+            }
+            @case ('warning') {
+              Advertencia
+            }
+            @case ('info') {
+              Información
+            }
+          }</span>
+          <div class="mt-2 text-sm">{{ alert.message }}</div>
+        </div>
+        <div class="flex-none">
+          <button class="btn btn-ghost btn-sm" (click)="closeAlert()">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
