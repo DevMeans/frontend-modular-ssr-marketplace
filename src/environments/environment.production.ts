@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://backend-mayo-production.up.railway.app/api'
+  apiUrl: 'https://backend-modular-production.up.railway.app/api'
 };
