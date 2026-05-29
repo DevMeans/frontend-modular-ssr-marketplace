@@ -6,7 +6,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "frontend-marketplace-ssr": {
+    "frontend-admin-spa": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -79,10 +79,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "frontend-marketplace-ssr:build:production"
+              "buildTarget": "frontend-admin-spa:build:production"
             },
             "development": {
-              "buildTarget": "frontend-marketplace-ssr:build:development"
+              "buildTarget": "frontend-admin-spa:build:development"
             }
           },
           "defaultConfiguration": "development"
