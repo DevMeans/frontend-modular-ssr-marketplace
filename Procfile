@@ -1,1 +1,1 @@
-web: node dist/frontend-admin-spa/server/server.mjs
+web: node dist/frontend-marketplace-ssr/server/server.mjs

@@ -1,15 +1,15 @@
 {
-  "name": "frontend-admin-spa",
+  "name": "frontend-marketplace-ssr",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "start:ssr": "node dist/frontend-admin-spa/server/server.mjs",
+    "start:ssr": "node dist/frontend-marketplace-ssr/server/server.mjs",
     "build": "ng build",
     "build:production": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:frontend-admin-spa": "node dist/frontend-admin-spa/server/server.mjs"
+    "serve:ssr:frontend-marketplace-ssr": "node dist/frontend-marketplace-ssr/server/server.mjs"
   },
   "prettier": {
     "printWidth": 100,
