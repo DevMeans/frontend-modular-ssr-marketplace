@@ -23,6 +23,7 @@ export interface MarketplaceProductVariant {
 
 export interface MarketplaceCatalogProduct {
   id: number;
+  slug?: string | null;
   name: string;
   description?: string | null;
   category?: {

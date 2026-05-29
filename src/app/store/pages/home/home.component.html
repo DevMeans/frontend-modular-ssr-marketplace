@@ -137,7 +137,12 @@
             <article class="product-card">
               <div class="product-image">
                 @if (product.imageUrl) {
-                  <img [src]="product.imageUrl" [alt]="product.name" />
+                  <img
+                    [src]="product.imageUrl"
+                    [alt]="productImageAlt(product)"
+                    loading="lazy"
+                    decoding="async"
+                  />
                 } @else {
                   <span>Sin imagen</span>
                 }
@@ -160,7 +165,7 @@
                   <span>{{ product.sizes.length }} talla(s)</span>
                   <span>{{ product.variants.length }} variante(s)</span>
                 </div>
-                <a class="view-btn" [routerLink]="['/marketplace/products', product.id]">Ver producto</a>
+                <a class="view-btn" [routerLink]="productPath(product)">Ver producto</a>
               </div>
             </article>
           }
