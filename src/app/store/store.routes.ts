@@ -27,7 +27,7 @@ export const storeRoutes : Routes = [
         component: HomeComponent
       },
       {
-        path: 'marketplace/products/:productSlug',
+        path: 'marketplace/products/:id',
         component: ProductDetailComponent
       },
       {

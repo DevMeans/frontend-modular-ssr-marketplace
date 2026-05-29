@@ -7,7 +7,6 @@ export interface SeoPageConfig {
   description: string;
   path?: string;
   image?: string | null;
-  imageAlt?: string;
   robots?: string;
   type?: string;
   keywords?: string;
@@ -25,9 +24,7 @@ export class SeoService {
     const title = this.normalizeText(config.title);
     const description = this.normalizeText(config.description);
     const canonicalUrl = this.buildAbsoluteUrl(config.path);
-    const imageInput = String(config.image ?? '').trim();
-    const imageUrl = imageInput ? this.buildAbsoluteUrl(imageInput) : null;
-    const imageAlt = this.normalizeText(config.imageAlt || title);
+    const imageUrl = this.buildAbsoluteUrl(config.image);
     const currentUrl = canonicalUrl ?? this.buildAbsoluteUrl();
     const robots = config.robots ?? 'index,follow';
     const type = config.type ?? 'website';
@@ -58,14 +55,10 @@ export class SeoService {
 
     if (imageUrl) {
       this.upsertMetaByProperty('og:image', imageUrl);
-      this.upsertMetaByProperty('og:image:alt', imageAlt);
       this.upsertMetaByName('twitter:image', imageUrl);
-      this.upsertMetaByName('twitter:image:alt', imageAlt);
     } else {
       this.removeMetaByProperty('og:image');
-      this.removeMetaByProperty('og:image:alt');
       this.removeMetaByName('twitter:image');
-      this.removeMetaByName('twitter:image:alt');
     }
 
     if (canonicalUrl) {

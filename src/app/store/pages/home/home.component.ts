@@ -7,7 +7,6 @@ import { MarketplaceCatalogProduct, MarketplaceCatalogResponse } from '../../int
 import { MarketplaceService, PublicProductFilters } from '../../services/marketplace.service';
 import { MarketplaceCartService } from '../../services/marketplace-cart.service';
 import { SeoService } from '../../../shared/services/seo.service';
-import { buildMarketplaceProductPath, buildProductImageAlt } from '../../utils/product-seo.util';
 
 interface FilterOption {
   id: number;
@@ -112,7 +111,6 @@ export class HomeComponent {
         description,
         path: '/marketplace',
         image: heroImage,
-        imageAlt: 'Vista previa del catalogo mayorista',
         type: 'website',
         robots: 'index,follow',
         keywords: 'marketplace mayorista, catalogo mayorista, productos al por mayor',
@@ -131,7 +129,7 @@ export class HomeComponent {
             '@type': 'ListItem',
             position: index + 1,
             name: product.name,
-            url: this.seoService.buildAbsoluteUrl(this.productPath(product)) ?? this.productPath(product),
+            url: this.seoService.buildAbsoluteUrl(`/marketplace/products/${product.id}`) ?? `/marketplace/products/${product.id}`,
           })),
         },
       });
@@ -187,14 +185,6 @@ export class HomeComponent {
       return 'Por agotarse';
     }
     return 'Disponible';
-  }
-
-  productPath(product: MarketplaceCatalogProduct): string {
-    return buildMarketplaceProductPath(product);
-  }
-
-  productImageAlt(product: MarketplaceCatalogProduct): string {
-    return buildProductImageAlt(product.name, 'imagen principal');
   }
 
   private findSeoImage(products: MarketplaceCatalogProduct[]): string | null {

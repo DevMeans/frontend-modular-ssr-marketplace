@@ -29,19 +29,14 @@
         <div class="gallery-stage">
           @if (current.images.length > 0) {
             <div class="thumb-rail">
-              @for (image of current.images; track image.id; let imageIndex = $index) {
+              @for (image of current.images; track image.id) {
                 <button
                   type="button"
                   class="thumb-btn"
                   [class.active]="selectedImageUrl() === image.url"
                   (click)="selectImage(image.url)"
                 >
-                  <img
-                    [src]="image.url"
-                    [alt]="thumbnailAlt(current, imageIndex)"
-                    loading="lazy"
-                    decoding="async"
-                  />
+                  <img [src]="image.url" [alt]="current.name" />
                 </button>
               }
             </div>
@@ -49,13 +44,7 @@
 
           <div class="main-image">
             @if (selectedImageUrl()) {
-              <img
-                [src]="selectedImageUrl()"
-                [alt]="mainImageAlt(current)"
-                loading="eager"
-                decoding="async"
-                fetchpriority="high"
-              />
+              <img [src]="selectedImageUrl()" [alt]="current.name" />
             }
           </div>
         </div>
@@ -181,12 +170,7 @@
               (click)="selectColor(option.name, false)"
             >
               @if (getColorPreviewImage(option.name); as colorImage) {
-                <img
-                  [src]="colorImage"
-                  [alt]="colorPreviewAlt(current, option.name)"
-                  loading="lazy"
-                  decoding="async"
-                />
+                <img [src]="colorImage" [alt]="option.name" />
               } @else {
                 <i [style.background]="option.hex || '#94a3b8'"></i>
                 <span>{{ option.name }}</span>

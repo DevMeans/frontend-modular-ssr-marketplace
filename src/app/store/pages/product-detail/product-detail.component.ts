@@ -1,5 +1,5 @@
-import { Component, HostListener, OnInit, PLATFORM_ID, computed, effect, inject, signal } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, HostListener, OnInit, computed, effect, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { rxResource } from '@angular/core/rxjs-interop';
@@ -8,12 +8,6 @@ import { MarketplaceCatalogProduct, MarketplaceProductVariant } from '../../inte
 import { MarketplaceService } from '../../services/marketplace.service';
 import { MarketplaceCartService } from '../../services/marketplace-cart.service';
 import { SeoService } from '../../../shared/services/seo.service';
-import {
-  buildMarketplaceProductPath,
-  buildProductImageAlt,
-  createProductSlug,
-  resolveProductIdFromRouteToken,
-} from '../../utils/product-seo.util';
 
 @Component({
   selector: 'app-marketplace-product-detail',
@@ -29,11 +23,9 @@ import {
 export class ProductDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly platformId = inject(PLATFORM_ID);
   private readonly marketplaceService = inject(MarketplaceService);
   private readonly cartService = inject(MarketplaceCartService);
   private readonly seoService = inject(SeoService);
-  private readonly routeProductToken = signal('');
   private readonly productId = signal<number | null>(null);
   private readonly invalidProductMessage = signal('');
   private readonly addToCartMessage = signal('');
@@ -208,7 +200,6 @@ export class ProductDetailComponent implements OnInit {
       const invalidMessage = this.invalidProductMessage();
       const product = this.product();
       const currentProductId = this.productId();
-      const currentRouteToken = this.routeProductToken();
 
       if (invalidMessage) {
         this.seoService.setNoIndexPage({
@@ -222,8 +213,8 @@ export class ProductDetailComponent implements OnInit {
       }
 
       if (!product) {
-        const detailPath = (currentProductId ?? 0) > 0 && currentRouteToken
-          ? `/marketplace/products/${currentRouteToken}`
+        const detailPath = (currentProductId ?? 0) > 0
+          ? `/marketplace/products/${currentProductId}`
           : '/marketplace/products';
         this.seoService.setPage({
           title: 'Detalle de producto | Marketplace mayorista',
@@ -236,7 +227,7 @@ export class ProductDetailComponent implements OnInit {
         return;
       }
 
-      const detailPath = this.productPath(product);
+      const detailPath = `/marketplace/products/${product.id}`;
       const description = this.buildSeoDescription(product);
       const image = this.resolveSeoImage(product);
 
@@ -245,37 +236,17 @@ export class ProductDetailComponent implements OnInit {
         description,
         path: detailPath,
         image,
-        imageAlt: this.mainImageAlt(product),
         type: 'product',
         robots: 'index,follow',
         keywords: `producto mayorista, ${product.name}, ${product.category?.name || 'catalogo mayorista'}`,
       });
       this.seoService.setJsonLd(this.buildProductJsonLd(product, detailPath, description));
     });
-
-    effect(() => {
-      const product = this.product();
-      const currentRouteToken = this.routeProductToken();
-      if (!product || !currentRouteToken || !isPlatformBrowser(this.platformId)) {
-        return;
-      }
-
-      const canonicalSlug = createProductSlug(product.name, product.id);
-      if (currentRouteToken === canonicalSlug) {
-        return;
-      }
-
-      this.router.navigate(['/marketplace/products', canonicalSlug], {
-        replaceUrl: true,
-        queryParamsHandling: 'preserve',
-      });
-    });
   }
 
   ngOnInit() {
     this.route.paramMap.subscribe((params) => {
-      const routeToken = String(params.get('productSlug') ?? '').trim();
-      const id = resolveProductIdFromRouteToken(routeToken);
+      const id = Number(params.get('id'));
       this.addToCartMessage.set('');
       this.selectedImageOverride.set('');
       this.selectedColorName.set(null);
@@ -283,9 +254,8 @@ export class ProductDetailComponent implements OnInit {
       this.drawerOpen.set(false);
       this.quantityByVariant.clear();
       this.bumpQuantityVersion();
-      this.routeProductToken.set(routeToken);
 
-      if (!id) {
+      if (!Number.isInteger(id) || id < 1) {
         this.invalidProductMessage.set('Producto invalido.');
         this.productId.set(null);
         return;
@@ -399,22 +369,6 @@ export class ProductDetailComponent implements OnInit {
 
   getSizeName(variant: MarketplaceProductVariant): string {
     return String(variant?.size?.name || 'Unica');
-  }
-
-  productPath(product: MarketplaceCatalogProduct): string {
-    return buildMarketplaceProductPath(product);
-  }
-
-  mainImageAlt(product: MarketplaceCatalogProduct): string {
-    return buildProductImageAlt(product.name, 'imagen principal');
-  }
-
-  thumbnailAlt(product: MarketplaceCatalogProduct, index: number): string {
-    return buildProductImageAlt(product.name, `vista ${index + 1}`);
-  }
-
-  colorPreviewAlt(product: MarketplaceCatalogProduct, colorName: string): string {
-    return buildProductImageAlt(product.name, `color ${colorName}`);
   }
 
   getColorPreviewImage(colorName: string): string {
